@@ -539,9 +539,19 @@ namespace hnswlib {
             writeBinaryPOD(output, mult_);
             writeBinaryPOD(output, ef_construction_);
 
-            output.write(data_level0_memory_, cur_element_count * size_data_per_element_);
+            size_t count = cur_element_count;
+            size_t entry = reusable_entry;
+            while (entry != -1) {
+                count++;
+                entry = getExternalLabel(entry);
+            }
+            writeBinaryPOD(output, reusable_entry);
+            writeBinaryPOD(output, reusable_tail);
+            writeBinaryPOD(output, count);
 
-            for (size_t i = 0; i < cur_element_count; i++) {
+            output.write(data_level0_memory_, count * size_data_per_element_);
+
+            for (size_t i = 0; i < count; i++) {
                 unsigned int linkListSize = element_levels_[i] > 0 ? size_links_per_element_ * element_levels_[i] : 0;
                 writeBinaryPOD(output, linkListSize);
                 if (linkListSize)
@@ -579,6 +589,11 @@ namespace hnswlib {
             readBinaryPOD(input, M_);
             readBinaryPOD(input, mult_);
             readBinaryPOD(input, ef_construction_);
+            readBinaryPOD(input, reusable_entry);
+            readBinaryPOD(input, reusable_tail);
+
+            size_t count = 0;
+            readBinaryPOD(input, count);
 
 
             data_size_ = s->get_data_size();
@@ -590,8 +605,8 @@ namespace hnswlib {
             bool old_index=false;
 
             auto pos=input.tellg();
-            input.seekg(cur_element_count * size_data_per_element_,input.cur);
-            for (size_t i = 0; i < cur_element_count; i++) {
+            input.seekg(count * size_data_per_element_,input.cur);
+            for (size_t i = 0; i < count; i++) {
                 if(input.tellg() < 0 || input.tellg()>=total_filesize){
                     old_index = true;
                     break;
@@ -617,7 +632,7 @@ namespace hnswlib {
 
 
             data_level0_memory_ = (char *) malloc(max_elements * size_data_per_element_);
-            input.read(data_level0_memory_, cur_element_count * size_data_per_element_);
+            input.read(data_level0_memory_, count * size_data_per_element_);
 
             if(old_index)
                 input.seekg(((max_elements_-cur_element_count) * size_data_per_element_), input.cur);
@@ -759,6 +774,7 @@ namespace hnswlib {
                     reusable_tail = nodeId;
                     setExternalLabel(reusable_tail, -1);
                 }
+                element_levels_[nodeId] = 0;
                 if (linkLists_[nodeId]) {
                     delete[] linkLists_[nodeId];
                     linkLists_[nodeId] = 0;
