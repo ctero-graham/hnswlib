@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <unordered_set>
 #include <list>
+#include <limits>
 
 
 namespace hnswlib {
@@ -159,7 +160,7 @@ namespace hnswlib {
             std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, CompareByFirst> top_candidates;
             std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, CompareByFirst> candidateSet;
 
-            dist_t lowerBound;
+            dist_t lowerBound = UINT_MAX - 1;
             if (!isMarkedDeleted(ep_id)) {
                 dist_t dist = fstdistfunc_(data_point, getDataByInternalId(ep_id), dist_func_param_);
                 top_candidates.emplace(dist, ep_id);
@@ -200,7 +201,7 @@ namespace hnswlib {
 
                 for (int j = 0; j < size; j++) {
                     tableint candidate_id = *(datal + j);
-                    if (candidate_id == 0) continue;
+//                    if (candidate_id == 0) continue;
         #ifdef USE_SSE
                     _mm_prefetch((char *) (visited_array + *(datal + j + 1)), _MM_HINT_T0);
                     _mm_prefetch(getDataByInternalId(*(datal + j + 1)), _MM_HINT_T0);
@@ -241,7 +242,7 @@ namespace hnswlib {
             std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, CompareByFirst> top_candidates;
             std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, CompareByFirst> candidate_set;
 
-            dist_t lowerBound;
+            dist_t lowerBound = UINT_MAX - 1;
             if (!isMarkedDeleted(ep_id)) {
                 dist_t dist = fstdistfunc_(data_point, getDataByInternalId(ep_id), dist_func_param_);
                 lowerBound = dist;
@@ -277,7 +278,7 @@ namespace hnswlib {
 
                 for (int j = 1; j <= size; j++) {
                     int candidate_id = *(data + j);
-                    if (candidate_id == 0) continue;
+//                    if (candidate_id == 0) continue;
         #ifdef USE_SSE
                     _mm_prefetch((char *) (visited_array + *(data + j + 1)), _MM_HINT_T0);
                     _mm_prefetch(data_level0_memory_ + (*(data + j + 1)) * size_data_per_element_ + offsetData_,
@@ -741,13 +742,13 @@ namespace hnswlib {
         }
 
         void setListCount(linklistsizeint * ptr, size_t size) const {
-            *ptr = ((*ptr >> 24) << 24) | (size & 0x00ffff);
+            *ptr = ((*ptr >> 24) << 24) | (size & 0x00ffffff);
         }
 
         /**
          * Finds all the elements marked deleted except the enter point, remove them from the memory, then re-connect the graph.
          */
-        void recycle_in_test() {
+         void recycle_in_test() {
             std::unique_lock <std::mutex> templock(global);
             tableint ep_copy = enterpoint_node_;
             int maxlevelcopy = maxlevel_;
@@ -903,7 +904,6 @@ namespace hnswlib {
 
             element_levels_[cur_c] = curlevel;
 
-
             std::unique_lock <std::mutex> templock(global);
             int maxlevelcopy = maxlevel_;
             if (curlevel <= maxlevelcopy)
@@ -994,10 +994,8 @@ namespace hnswlib {
                 bool changed = true;
                 while (changed) {
                     changed = false;
-                    int *data;
-
-                    data = (int *) get_linklist(currObj, level);
-                    int size = *data;
+                    int *data = (int *) get_linklist(currObj, level);
+                    int size = getListCount((linklistsizeint*) data);
                     tableint *datal = (tableint *) (data + 1);
                     for (int i = 0; i < size; i++) {
                         tableint cand = datal[i];
@@ -1013,7 +1011,6 @@ namespace hnswlib {
                     }
                 }
             }
-
 
             std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, CompareByFirst> top_candidates = searchBaseLayerST(
                     currObj, query_data, std::max(ef_,k));
