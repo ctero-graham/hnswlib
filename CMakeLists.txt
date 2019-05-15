@@ -7,7 +7,7 @@ include_directories("${PROJECT_BINARY_DIR}")
 
 set(SOURCE_EXE main.cpp)            
 
-set(SOURCE_LIB sift_1b.cpp delete_test.cpp)
+set(SOURCE_LIB sift_1b.cpp)
 
 add_library(sift_test STATIC ${SOURCE_LIB})
 

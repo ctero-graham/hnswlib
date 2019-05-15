@@ -4,7 +4,7 @@
 #include <string.h>
 
 namespace hnswlib {
-    typedef unsigned char vl_type;
+    typedef unsigned short int vl_type;
 
     class VisitedList {
     public:
