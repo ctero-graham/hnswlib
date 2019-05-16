@@ -4,7 +4,7 @@
 #include <set>
 #include "hnswlib/hnswlib.h"
 
-int testDelete() {
+void testDelete() {
     hnswlib::HierarchicalNSW<int>* appr_alg;
     int dim = 128, size = 2000;
     hnswlib::L2SpaceI l2space(dim);
@@ -34,7 +34,7 @@ int testDelete() {
                 std::cout << ' ' << result.top().second << "(" << result.top().first << ") ";
                 if (deletedSet.find(result.top().second) != deletedSet.end()) {
                     std::cerr << "delete failed!" << std::endl;
-                    return -1;
+                    return;
                 }
                 toDel = result.top().second;
             }
@@ -46,15 +46,16 @@ int testDelete() {
         try {
             appr_alg->template getDataByLabel<int>(toDel);
             std::cerr << "delete failed!" << std::endl;
-            return -1;
+            return;
         } catch (std::runtime_error e) {
         }
     }
 
+    std::cout << "recycle in test" << std::endl;
     appr_alg->recycle_in_test();
     std::cout << "reusable starts at " << appr_alg->reusable_entry <<
-              "enter point is at " << appr_alg->enterpoint_node_ <<
-              " enter point data is " << appr_alg->getExternalLabel(appr_alg->enterpoint_node_) <<
+              "\nenter point is at " << appr_alg->enterpoint_node_ <<
+              "\nenter point data is " << appr_alg->getExternalLabel(appr_alg->enterpoint_node_) <<
               "\t" << appr_alg->isMarkedDeleted(appr_alg->enterpoint_node_) << std::endl;
 
     for (int i = 0; i < 210; i++) {
@@ -74,6 +75,6 @@ int testDelete() {
     delete appr_alg;
     delete[] buffer;
     delete[] sample;
-    return 0;
+    return;
 };
 
