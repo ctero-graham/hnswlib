@@ -388,7 +388,6 @@ PYBIND11_PLUGIN(hnswlib) {
         .def("knn_query", &Index<float>::knnQuery_return_numpy, py::arg("data"), py::arg("k")=1, py::arg("num_threads")=-1)
         .def("add_items", &Index<float>::addItems, py::arg("data"), py::arg("ids") = py::none(), py::arg("num_threads")=-1)
         .def("get_items", &Index<float, float>::getDataReturnList, py::arg("ids") = py::none())
-        .def("mark_deleted", &Index<float>::markDeleted, py::arg("label"))
         .def("recycle_in_test", &Index<float>::recycle_in_test)
         .def("get_ids_list", &Index<float>::getIdsList)
         .def("set_ef", &Index<float>::set_ef, py::arg("ef"))
