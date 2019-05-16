@@ -100,6 +100,13 @@ class RandomSelfTestCase(unittest.TestCase):
             for lb in labels1:
                 if la[0] == lb[0]:
                     self.assertTrue(False)
+        print("All the data in data1 are removed")
+
+        labels1_after, _ = p.knn_query(data1, k=1)
+        for la in labels1_after:
+            for lb in labels1:
+                if la[0] == lb[0]:
+                    self.assertTrue(False)
         print "All the data in data1 are removed"
 
 
