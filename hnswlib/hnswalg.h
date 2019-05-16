@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <unordered_set>
 #include <list>
-#include <limits>
+#include <climits>
 
 
 namespace hnswlib {
@@ -161,6 +161,7 @@ namespace hnswlib {
             std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, CompareByFirst> candidateSet;
 
             dist_t lowerBound = UINT_MAX - 1;
+
             if (!isMarkedDeleted(ep_id)) {
                 dist_t dist = fstdistfunc_(data_point, getDataByInternalId(ep_id), dist_func_param_);
                 top_candidates.emplace(dist, ep_id);
@@ -192,20 +193,20 @@ namespace hnswlib {
                 }
                 size_t size = getListCount((linklistsizeint*)data);
                 tableint *datal = (tableint *) (data + 1);
-        #ifdef USE_SSE
+            #ifdef USE_SSE
                 _mm_prefetch((char *) (visited_array + *(data + 1)), _MM_HINT_T0);
                 _mm_prefetch((char *) (visited_array + *(data + 1) + 64), _MM_HINT_T0);
                 _mm_prefetch(getDataByInternalId(*datal), _MM_HINT_T0);
                 _mm_prefetch(getDataByInternalId(*(datal + 1)), _MM_HINT_T0);
-        #endif
+            #endif
 
                 for (int j = 0; j < size; j++) {
                     tableint candidate_id = *(datal + j);
 //                    if (candidate_id == 0) continue;
-        #ifdef USE_SSE
+                #ifdef USE_SSE
                     _mm_prefetch((char *) (visited_array + *(datal + j + 1)), _MM_HINT_T0);
                     _mm_prefetch(getDataByInternalId(*(datal + j + 1)), _MM_HINT_T0);
-        #endif
+                #endif
                     if (visited_array[candidate_id] == visited_array_tag) continue;
                     visited_array[candidate_id] = visited_array_tag;
                     char *currObj1 = (getDataByInternalId(candidate_id));
@@ -213,9 +214,9 @@ namespace hnswlib {
                     dist_t dist1 = fstdistfunc_(data_point, currObj1, dist_func_param_);
                     if (top_candidates.size() < ef_construction_ || lowerBound > dist1) {
                         candidateSet.emplace(-dist1, candidate_id);
-        #ifdef USE_SSE
+                #ifdef USE_SSE
                         _mm_prefetch(getDataByInternalId(candidateSet.top().second), _MM_HINT_T0);
-        #endif
+                #endif
 
                         if (!isMarkedDeleted(candidate_id))
                             top_candidates.emplace(dist1, candidate_id);
@@ -269,21 +270,20 @@ namespace hnswlib {
                 size_t size = getListCount((linklistsizeint*)data);
 //                bool cur_node_deleted = isMarkedDeleted(current_node_id);
 
-        #ifdef USE_SSE
+            #ifdef USE_SSE
                 _mm_prefetch((char *) (visited_array + *(data + 1)), _MM_HINT_T0);
                 _mm_prefetch((char *) (visited_array + *(data + 1) + 64), _MM_HINT_T0);
                 _mm_prefetch(data_level0_memory_ + (*(data + 1)) * size_data_per_element_ + offsetData_, _MM_HINT_T0);
                 _mm_prefetch((char *) (data + 2), _MM_HINT_T0);
-        #endif
+            #endif
 
                 for (int j = 1; j <= size; j++) {
                     int candidate_id = *(data + j);
-//                    if (candidate_id == 0) continue;
-        #ifdef USE_SSE
+            #ifdef USE_SSE
                     _mm_prefetch((char *) (visited_array + *(data + j + 1)), _MM_HINT_T0);
                     _mm_prefetch(data_level0_memory_ + (*(data + j + 1)) * size_data_per_element_ + offsetData_,
                                  _MM_HINT_T0);////////////
-        #endif
+            #endif
                     if (!(visited_array[candidate_id] == visited_array_tag)) {
 
                         visited_array[candidate_id] = visited_array_tag;
@@ -293,11 +293,11 @@ namespace hnswlib {
 
                         if (top_candidates.size() < ef || lowerBound > dist) {
                             candidate_set.emplace(-dist, candidate_id);
-        #ifdef USE_SSE
+#ifdef USE_SSE
                             _mm_prefetch(data_level0_memory_ + candidate_set.top().second * size_data_per_element_ +
                                          offsetLevel0_,///////////
                                          _MM_HINT_T0);////////////////////////
-        #endif
+#endif
 
                             if (!isMarkedDeleted(candidate_id))
                                 top_candidates.emplace(dist, candidate_id);
@@ -695,6 +695,7 @@ namespace hnswlib {
 
         static const unsigned char DELETE_MARK = 0x01;
         static const unsigned char REUSE_MARK = 0x10;
+
         /**
          * Marks an element with the given label deleted, does NOT really change the current graph.
          * @param label
@@ -996,6 +997,7 @@ namespace hnswlib {
                     changed = false;
                     int *data = (int *) get_linklist(currObj, level);
                     int size = getListCount((linklistsizeint*) data);
+
                     tableint *datal = (tableint *) (data + 1);
                     for (int i = 0; i < size; i++) {
                         tableint cand = datal[i];
